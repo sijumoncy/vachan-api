@@ -8,8 +8,8 @@ from custom_exceptions import UnAuthorizedException
 def redis_connect() -> redis.client.Redis:
     try:
         client = redis.Redis(
-            host="redis",
-            # host="localhost",
+            # host="redis",
+            host="localhost",
             port=6379,
             db=0,
             socket_timeout=5,
@@ -26,6 +26,12 @@ def get_routes_from_cache(key: str):
     """Data from redis."""
     redis_client = redis_connect()
     val = redis_client.get(key)
+    return val
+
+def get_match_pattern(pattern: str):
+    """get pattern mathed keys"""
+    redis_client = redis_connect()
+    val = redis_client.keys(pattern+"*")
     return val
 
 def set_routes_to_cache(key: str, value: str):

@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import  Optional
 from fastapi import APIRouter, Query, Request, Depends
 from fastapi.responses import Response
+import requests
 from sqlalchemy.orm import Session
 from schema import schemas,schema_auth
 from routers.content_apis import get_source
@@ -13,7 +14,7 @@ from dependencies import log, get_db
 from auth.authentication import get_auth_access_check_decorator ,\
     get_current_user_data
 from redis_db.utils import  get_routes_from_cache, set_routes_to_cache,\
-    del_cache
+    del_cache, get_match_pattern
 
 router = APIRouter()
 
@@ -154,40 +155,63 @@ async def download_media(request: Request, #pylint: disable=too-many-arguments
     response.headers["Content-Type"] = "application/octet-stream"
     return response
 
-@router.put("/v2/media/gitlab/refresh-cache",
+@router.get("/v2/media/gitlab/refresh-cache",
     responses={502: {"model": schemas.ErrorResponse},
     422: {"model": schemas.ErrorResponse},401:{"model": schemas.ErrorResponse},
     404:{"model": schemas.ErrorResponse},403:{"model": schemas.ErrorResponse}},
     status_code=201, tags=["Media"])
 # @get_auth_access_check_decorator
 async def refresh_cache(request: Request, #pylint: disable=too-many-arguments
-    media_list : schemas.RefreshCache,
+    # media_list : schemas.RefreshCache,
+    commit_id: str = Query(None),
     access_token: str = Query(None)):
     '''Refresh the cache content from gitlab.
     * Input accept List of file path url
     '''
     log.info('In get_refresh_cache_media')
-    log.debug('content list :%s',media_list)
-    print("media list type---->",type(media_list))
-    print("media list---->",media_list)
-    for path in media_list.mediaList:
+    log.debug('content list :%s',commit_id)
+    print("media list type---->",type(commit_id))
+    print("media list---->",commit_id)
+    # for path in media_list.mediaList:
 
+    #     #permanent link validation
+    #     # repo = path.split("/-/")[0]
+    #     # tag =  re.search(r'/-/[^/]+/[^/]+',path)[0].split("/")[-1]
+    #     # file_path = re.findall(r'(/-/[^/]+/[^/]+/)(.+)',path)[0][-1]
+    #     path =  re.sub(r'/-/[^/]+',"/-/raw",path)
+    #     print("path---->",path)
+
+    #     # redis cache part 
+    #     # data = get_routes_from_cache(key= path)
+    #     # if data:
+    #     #     val = del_cache(path)
+    #     #     if not val:
+    #     #         print("Val not deleted.... issue in delete")
+    #     # data = media_crud.get_gitlab_download(repo=None, tag=None,
+    #     #     permanent_link=path, file_path=None)
+    #     # set_routes_to_cache(key=path, value=data)
+
+    # get full repo content from redis
+    data = get_match_pattern("https://gitlab.bridgeconn.com/Siju.Moncy/trial-media-project/")
+    for resource in data:
         #permanent link validation
-        # repo = path.split("/-/")[0]
-        # tag =  re.search(r'/-/[^/]+/[^/]+',path)[0].split("/")[-1]
-        # file_path = re.findall(r'(/-/[^/]+/[^/]+/)(.+)',path)[0][-1]
-        path =  re.sub(r'/-/[^/]+',"/-/raw",path)
-        print("path---->",path)
+        resource =  re.sub(r'/-/[^/]+',"/-/raw",str(resource))
+    
+    GITLAB_API_TOKEN = "glpat-zW-z7ij-keB1G-DxNC3m"
 
-        # # redis cache part 
-        # data = get_routes_from_cache(key= path)
-        # if data:
-        #     val = del_cache(path)
-        #     if not val:
-        #         print("Val not deleted.... issue in delete")
-        # data = media_crud.get_gitlab_download(repo=None, tag=None,
-        #     permanent_link=path, file_path=None)
-        # set_routes_to_cache(key=path, value=data)
+    headers = {
+        "Authorization": f"Bearer {GITLAB_API_TOKEN}"
+    }
+    # gitlab_api = requests.get(url="https://gitlab.bridgeconn.com/api/v4/projects/:Siju.Moncy/trial-media-project/tree?recursive=true&per_page=100")
+    gitlab_api = requests.get(url="https://gitlab.bridgeconn.com/api/v4/projects/73/repository/tree?recursive=true&per_page=100",headers=headers)
 
-    return {"message":"Success","data":media_list}
+    # /project will return project name
+
+    # this json contians a type blob have paths of all files in the repo
+    # identify media contents from the json and update all to cache by generate urls
+
+
+    print("----api----->",gitlab_api)                                                          
+    print("----api----->",gitlab_api.json())
+    return {"message":"Success","data":gitlab_api.json()}
 

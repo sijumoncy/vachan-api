@@ -2,7 +2,7 @@
 import re
 from datetime import datetime
 from typing import  Optional
-from fastapi import APIRouter, Query, Request, Depends
+from fastapi import APIRouter, Query, Request, Depends, Body
 from fastapi.responses import Response
 import requests
 from sqlalchemy.orm import Session
@@ -155,14 +155,14 @@ async def download_media(request: Request, #pylint: disable=too-many-arguments
     response.headers["Content-Type"] = "application/octet-stream"
     return response
 
-@router.get("/v2/media/gitlab/refresh-cache",
+@router.put("/v2/media/gitlab/refresh-cache",
     responses={502: {"model": schemas.ErrorResponse},
     422: {"model": schemas.ErrorResponse},401:{"model": schemas.ErrorResponse},
     404:{"model": schemas.ErrorResponse},403:{"model": schemas.ErrorResponse}},
     status_code=201, tags=["Media"])
 # @get_auth_access_check_decorator
 async def refresh_cache(request: Request, #pylint: disable=too-many-arguments
-    media_list : str = Query(None),
+    media_list : schemas.RefreshCache = Body(),
     commit_id: str = Query(None),
     access_token: str = Query(None)):
     '''Refresh the cache content from gitlab.
@@ -197,7 +197,7 @@ async def refresh_cache(request: Request, #pylint: disable=too-many-arguments
     #     #permanent link validation
     #     resource =  re.sub(r'/-/[^/]+',"/-/raw",str(resource))
     
-    GITLAB_API_TOKEN = "glpat-zW-z7ij-keB1G-DxNC3m"
+    GITLAB_API_TOKEN = ""
 
     headers = {
         "Authorization": f"Bearer {GITLAB_API_TOKEN}"

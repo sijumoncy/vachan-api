@@ -212,5 +212,5 @@ async def refresh_cache(request: Request, #pylint: disable=too-many-arguments
 
     # print("----api----->",gitlab_api)                                                          
     # print("----api----->",gitlab_api.json())
-    return {"message":"Success","data":media_list, "datatype":type(media_list)}
+    return {"message":"Success","data":media_list.mediaList, "datatype":type(media_list.mediaList)}
 

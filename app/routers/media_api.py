@@ -13,8 +13,8 @@ from custom_exceptions import NotAvailableException, UnprocessableException
 from dependencies import log, get_db
 from auth.authentication import get_auth_access_check_decorator ,\
     get_current_user_data
-from redis_db.utils import  get_routes_from_cache, set_routes_to_cache,\
-    del_cache, get_match_pattern
+# from redis_db.utils import  get_routes_from_cache, set_routes_to_cache,\
+#     del_cache, get_match_pattern
 
 router = APIRouter()
 
@@ -96,12 +96,12 @@ async def stream_media(request: Request, #pylint: disable=unused-argument,too-ma
         tag, permanent_link, db_, request, user_details)
     
     # redis cache part 
-    stream = get_routes_from_cache(key= permanent_link)
+    # stream = get_routes_from_cache(key= permanent_link)
     print("stream type from cache --------------->",type(stream))
     if stream is None:
         stream = media_crud.get_gitlab_download(repo, tag, permanent_link, file_path)
         print("stream type direct gitlab --------------->",type(stream))
-        state = set_routes_to_cache(key=permanent_link, value=stream)
+        # state = set_routes_to_cache(key=permanent_link, value=stream)
     
     return media_crud.get_gitlab_stream(request, repo, tag, file_path,
         permanent_link, start_time=start_time, end_time=end_time, stream = stream)
@@ -141,12 +141,12 @@ async def download_media(request: Request, #pylint: disable=too-many-arguments
     # return cache_response
 
     # redis cache part 
-    data = get_routes_from_cache(key= permanent_link)
+    # data = get_routes_from_cache(key= permanent_link)
     print("stream type from cache --------------->",type(data))
     if data is None:
         data = media_crud.get_gitlab_download(repo, tag, permanent_link, file_path)
         print("stream type direct gitlab --------------->",type(data))
-        state = set_routes_to_cache(key=permanent_link, value=data)
+        # state = set_routes_to_cache(key=permanent_link, value=data)
       
     response =  Response(data)
     response.headers["Content-Disposition"] = "attachment; filename=stream.mp4"
@@ -162,7 +162,7 @@ async def download_media(request: Request, #pylint: disable=too-many-arguments
     status_code=201, tags=["Media"])
 # @get_auth_access_check_decorator
 async def refresh_cache(request: Request, #pylint: disable=too-many-arguments
-    # media_list : schemas.RefreshCache,
+    media_list : str = Query(None),
     commit_id: str = Query(None),
     access_token: str = Query(None)):
     '''Refresh the cache content from gitlab.
@@ -192,10 +192,10 @@ async def refresh_cache(request: Request, #pylint: disable=too-many-arguments
     #     # set_routes_to_cache(key=path, value=data)
 
     # get full repo content from redis
-    data = get_match_pattern("https://gitlab.bridgeconn.com/Siju.Moncy/trial-media-project/")
-    for resource in data:
-        #permanent link validation
-        resource =  re.sub(r'/-/[^/]+',"/-/raw",str(resource))
+    # data = get_match_pattern("https://gitlab.bridgeconn.com/Siju.Moncy/trial-media-project/")
+    # for resource in data:
+    #     #permanent link validation
+    #     resource =  re.sub(r'/-/[^/]+',"/-/raw",str(resource))
     
     GITLAB_API_TOKEN = "glpat-zW-z7ij-keB1G-DxNC3m"
 
@@ -203,15 +203,14 @@ async def refresh_cache(request: Request, #pylint: disable=too-many-arguments
         "Authorization": f"Bearer {GITLAB_API_TOKEN}"
     }
     # gitlab_api = requests.get(url="https://gitlab.bridgeconn.com/api/v4/projects/:Siju.Moncy/trial-media-project/tree?recursive=true&per_page=100")
-    gitlab_api = requests.get(url="https://gitlab.bridgeconn.com/api/v4/projects/73/repository/tree?recursive=true&per_page=100",headers=headers)
+    # gitlab_api = requests.get(url="https://gitlab.bridgeconn.com/api/v4/projects/73/repository/tree?recursive=true&per_page=100",headers=headers)
 
     # /project will return project name
 
     # this json contians a type blob have paths of all files in the repo
     # identify media contents from the json and update all to cache by generate urls
 
-
-    print("----api----->",gitlab_api)                                                          
-    print("----api----->",gitlab_api.json())
-    return {"message":"Success","data":gitlab_api.json()}
+    # print("----api----->",gitlab_api)                                                          
+    # print("----api----->",gitlab_api.json())
+    return {"message":"Success","data":media_list, "datatype":type(media_list)}
 

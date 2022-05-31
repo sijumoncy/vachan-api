@@ -162,6 +162,7 @@ async def download_media(request: Request, #pylint: disable=too-many-arguments
     status_code=201, tags=["Media"])
 # @get_auth_access_check_decorator
 async def refresh_cache(request: Request, #pylint: disable=too-many-arguments
+    # media_list : schemas.RefreshCache = Body(default=None),
     media_list : schemas.RefreshCache = Body(default=None),
     commit_id: str = Query(None),
     access_token: str = Query(None)):
@@ -170,8 +171,8 @@ async def refresh_cache(request: Request, #pylint: disable=too-many-arguments
     '''
     log.info('In get_refresh_cache_media')
     log.debug('content list :%s',commit_id)
-    print("media list type---->",type(commit_id))
-    print("media list---->",commit_id)
+    print("media list type---->",type(media_list.mediaList))
+    print("media list---->",media_list.mediaList)
     # for path in media_list.mediaList:
 
     #     #permanent link validation
@@ -212,5 +213,6 @@ async def refresh_cache(request: Request, #pylint: disable=too-many-arguments
 
     # print("----api----->",gitlab_api)                                                          
     # print("----api----->",gitlab_api.json())
-    return {"message":"Success","data":media_list.mediaList, "datatype":type(media_list.mediaList)}
+    datatype = str(type(media_list.mediaList))
+    return {"message":"Success","data":{"value":media_list.mediaList,"type":datatype}}
 

@@ -162,7 +162,7 @@ async def download_media(request: Request, #pylint: disable=too-many-arguments
     status_code=201, tags=["Media"])
 # @get_auth_access_check_decorator
 async def refresh_cache(request: Request, #pylint: disable=too-many-arguments
-    media_list : schemas.RefreshCache = Body(),
+    media_list : schemas.RefreshCache = Body(default=None),
     commit_id: str = Query(None),
     access_token: str = Query(None)):
     '''Refresh the cache content from gitlab.

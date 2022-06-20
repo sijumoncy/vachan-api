@@ -410,6 +410,8 @@ class SourceEdit(BaseModel):
 
 BookCodePattern = constr(regex=r"^[a-zA-Z1-9][a-zA-Z][a-zA-Z]$")
 
+MediaListInput =constr(regex=r".*")
 class RefreshCache(BaseModel):
     '''List of file paths'''
-    mediaList: str = None
+    # mediaList : str = None
+    mediaList : MediaListInput

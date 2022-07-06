@@ -115,6 +115,7 @@ services:
   links:
    - vachan-db
    - kratos
+   - redis
   depends_on:
    - kratos-migrate
    - postgresd

@@ -2,9 +2,8 @@
 import re
 from datetime import datetime
 from typing import  Optional
-from fastapi import APIRouter, Query, Request, Depends, Body
+from fastapi import APIRouter, Query, Request, Depends
 from fastapi.responses import Response
-import requests
 from sqlalchemy.orm import Session
 from schema import schemas,schema_auth
 from routers.content_apis import get_source
@@ -53,7 +52,8 @@ async def get_and_accesscheck_for_repo(repo, file_path, tag, permanent_link, db_
         raise
 
     if len(tables) == 0:
-        raise NotAvailableException("No sources available for the requested name or language")
+        raise NotAvailableException("No sources available for the requested repo, \
+accessible to the user")
     if tag is None:
         if not "defaultBranch" in tables[0].metaData:
             raise NotAvailableException("Default Branch is Not in source metadata")

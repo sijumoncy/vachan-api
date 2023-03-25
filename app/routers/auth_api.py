@@ -12,7 +12,7 @@ from auth.authentication import user_register_kratos,login_kratos,user_role_add 
     get_all_or_one_kratos_users,update_kratos_user
 from auth.auth_app import app_register_kratos, app_update_kratos, get_filter_apps
 from crud.auth_crud import create_auth_permission, update_auth_permission,\
-    get_auth_permission, create_role, get_role, update_role
+    get_auth_permission, create_role, get_role, update_role, update_access_rules
 
 router = APIRouter()
 
@@ -374,6 +374,27 @@ async def update_roles(role_details:schema_auth.RoleIn,request: Request,#pylint:
     data = update_role(db_,role_details, user_id=user_details['user_id'])
     return {'message': "Role updated successfully",
         "data": data}
+
+@router.put('/v2/access/rules',response_model=schema_auth.AccessRulesResponse,
+    responses={400: {"model": schemas.ErrorResponse},422: {"model": schemas.ErrorResponse},
+    500: {"model": schemas.ErrorResponse}, 404: {"model": schemas.ErrorResponse}},
+    status_code=201,tags=["Access-Control"])
+@get_auth_access_check_decorator
+async def edit_auth_rules(details:schema_auth.AccessRuleUpdateInput,request: Request,#pylint: disable=unused-argument
+app_key: types.SecretStr = Query(None),#pylint: disable=unused-argument
+user_details =Depends(get_user_or_none),
+db_: Session = Depends(get_db)):#pylint: disable=unused-argument
+    '''Create Authentication Access Rules
+    * ruleId is mandatory
+    * entitlement (ResourceType) is mandatory
+    * tag (permission) is mandatory
+    * roles (List of role) is mandatory'''
+    log.debug('Access Rules Update In:%s',details)
+    log.info('In update Access Rules')
+    log.debug('Access rule  Create In:%s',details)
+    data = update_access_rules(db_, details, user_id = user_details['user_id'])
+    return {'message': "Access rule updated successfully",
+            "data": data}
 
 # Dynamic route cause error for other static endpoints -----------------------------------
 @router.put('/v2/app/{app_id}', response_model=schema_auth.AppUpdateResponse,
